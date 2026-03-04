@@ -1,4 +1,0 @@
-streamlit
-anthropic
-vcdvcd
-python-dotenv
