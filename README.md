@@ -6,7 +6,7 @@ SiliAgent detects and repairs logic hallucinations in LLM-generated Verilog usin
 
 > *"We don't trust the AI. We trust the Simulation."*
 
-*Checkout at: https://saikumar2129.github.io/SiliAgent-AI-Autonomous-RTL-Verification-Platform/*
+>Checkout at: https://saikumar2129.github.io/SiliAgent-AI-Autonomous-RTL-Verification-Platform/
 ---
 
 ## The Problem
