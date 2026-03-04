@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiliAgent AI — Autonomous RTL Verification Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #050a0e;
+    --panel:     #080f14;
+    --border:    #0d2030;
+    --green:     #00ff88;
+    --green-dim: #00994d;
+    --cyan:      #00d4ff;
+    --amber:     #ffaa00;
+    --red:       #ff3355;
+    --text:      #a8c8d8;
+    --text-dim:  #4a6a7a;
+    --grid:      rgba(0,255,136,0.03);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    padding: 28px 48px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(0,255,136,0.04) 0%, transparent 100%);
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+
+  .logo-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-shadow: 0 0 30px rgba(0,255,136,0.5);
+  }
+
+  .logo-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .status-bar {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .status-pill {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .status-pill.live {
+    background: rgba(0,255,136,0.1);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+  }
+
+  .status-pill.info {
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: var(--cyan);
+  }
+
+  /* ── TAGLINE ── */
+  .tagline {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 32px 48px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tagline h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .tagline blockquote {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    color: var(--cyan);
+    letter-spacing: 1px;
+  }
+
+  /* ── MODULE SELECTOR ── */
+  .module-nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    gap: 0;
+    padding: 20px 48px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mod-tab {
+    padding: 12px 28px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--text-dim);
+    background: transparent;
+    transition: all 0.2s;
+    position: relative;
+    top: 1px;
+  }
+
+  .mod-tab:hover { color: var(--text); border-color: var(--border); }
+
+  .mod-tab.active {
+    color: var(--green);
+    background: var(--panel);
+    border-color: var(--border);
+    border-bottom: 1px solid var(--panel);
+  }
+
+  .mod-tab .mod-version {
+    font-size: 9px;
+    color: var(--text-dim);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .mod-tab.active .mod-version { color: var(--green-dim); }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+  }
+
+  .panel-header {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-header::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green);
+    flex-shrink: 0;
+  }
+
+  .panel-body { padding: 14px; }
+
+  /* Pipeline steps */
+  .pipeline-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(13,32,48,0.5);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .pipeline-step:last-child { border-bottom: none; }
+  .pipeline-step:hover .step-label { color: var(--text); }
+
+  .step-icon {
+    width: 28px; height: 28px;
+    border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+
+  .step-icon.pass {
+    background: rgba(0,255,136,0.1);
+    border: 1px solid var(--green-dim);
+    color: var(--green);
+  }
+
+  .step-icon.fail {
+    background: rgba(255,51,85,0.1);
+    border: 1px solid rgba(255,51,85,0.4);
+    color: var(--red);
+  }
+
+  .step-icon.repair {
+    background: rgba(255,170,0,0.1);
+    border: 1px solid rgba(255,170,0,0.4);
+    color: var(--amber);
+  }
+
+  .step-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .step-detail {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 3px;
+  }
+
+  /* Metrics */
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(13,32,48,0.5);
+  }
+  .metric-row:last-child { border-bottom: none; }
+
+  .metric-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .metric-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .metric-value.green { color: var(--green); }
+  .metric-value.cyan  { color: var(--cyan); }
+  .metric-value.amber { color: var(--amber); }
+  .metric-value.red   { color: var(--red); }
+
+  /* ── MAIN CONTENT ── */
+  .content { padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; }
+
+  /* Terminal */
+  .terminal {
+    background: #020609;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .terminal-bar {
+    padding: 8px 14px;
+    background: #060d12;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .term-dots { display: flex; gap: 6px; }
+  .term-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .term-dot.r { background: #ff5f57; }
+  .term-dot.y { background: #ffbd2e; }
+  .term-dot.g { background: #28ca42; }
+
+  .term-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .terminal-body {
+    padding: 16px 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .terminal-body::-webkit-scrollbar { width: 4px; }
+  .terminal-body::-webkit-scrollbar-track { background: transparent; }
+  .terminal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .t-dim    { color: var(--text-dim); }
+  .t-green  { color: var(--green); }
+  .t-cyan   { color: var(--cyan); }
+  .t-amber  { color: var(--amber); }
+  .t-red    { color: var(--red); }
+  .t-white  { color: #e0f0f8; }
+  .t-sep    { color: var(--border); }
+
+  /* Coverage grid */
+  .coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+  }
+
+  .cov-bin {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+
+  .cov-bin.hit { border-color: rgba(0,255,136,0.2); }
+  .cov-bin.miss { border-color: rgba(255,51,85,0.2); }
+
+  .cov-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cov-dot.hit  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .cov-dot.miss { background: var(--red);   box-shadow: 0 0 6px var(--red); }
+
+  .cov-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  .cov-time {
+    margin-left: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* Coverage bar */
+  .cov-bar-wrap {
+    background: rgba(13,32,48,0.8);
+    border-radius: 1px;
+    height: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .cov-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    box-shadow: 0 0 8px var(--green);
+    transition: width 1s ease;
+    border-radius: 1px;
+  }
+
+  /* Verdict banner */
+  .verdict {
+    padding: 16px 20px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .verdict.pass {
+    background: rgba(0,255,136,0.07);
+    border: 1px solid rgba(0,255,136,0.3);
+    color: var(--green);
+    text-shadow: 0 0 20px rgba(0,255,136,0.4);
+  }
+
+  .verdict.fail {
+    background: rgba(255,51,85,0.07);
+    border: 1px solid rgba(255,51,85,0.3);
+    color: var(--red);
+  }
+
+  .verdict-icon { font-size: 20px; }
+
+  /* Violation cards */
+  .violation {
+    background: rgba(255,51,85,0.05);
+    border: 1px solid rgba(255,51,85,0.2);
+    border-left: 3px solid var(--red);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .violation .v-time { color: var(--amber); }
+  .violation .v-rule { color: var(--red); }
+  .violation .v-msg  { color: var(--text); margin-top: 4px; }
+
+  .repair-block {
+    background: rgba(255,170,0,0.05);
+    border: 1px solid rgba(255,170,0,0.2);
+    border-left: 3px solid var(--amber);
+    border-radius: 2px;
+    padding: 12px 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    line-height: 1.6;
+    color: var(--amber);
+  }
+
+  /* Module panels */
+  .module-panel { display: none; }
+  .module-panel.active { display: contents; }
+
+  /* Separator */
+  .sep {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--border);
+    letter-spacing: 2px;
+  }
+
+  /* Footer */
+  footer {
+    position: relative;
+    z-index: 10;
+    padding: 16px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer .f-left {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  footer a {
+    color: var(--cyan);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    transition: color 0.2s;
+  }
+
+  footer a:hover { color: var(--green); }
+
+  /* Animated cursor */
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 13px;
+    background: var(--green);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* Scan line */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 0.3;
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+    z-index: 100;
+  }
+  @keyframes scan { from{top:0} to{top:100vh} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-name">SiliAgent AI</span>
+    <span class="logo-sub">Autonomous RTL Verification Platform</span>
+  </div>
+  <div class="status-bar">
+    <span class="status-pill live">● SILICON TRUTH ACTIVE</span>
+    <span class="status-pill info">Claude API · Icarus Verilog · VCD Oracle</span>
+  </div>
+</header>
+
+<div class="tagline">
+  <h1>Core Philosophy</h1>
+  <blockquote>"We don't trust the AI. We trust the Simulation."</blockquote>
+</div>
+
+<div class="module-nav">
+  <div class="mod-tab active" onclick="showModule('verosync', this)">
+    VeroSync
+    <span class="mod-version">V1 · FIFO Syntax</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('silioracle', this)">
+    SiliOracle
+    <span class="mod-version">V2 · FIFO Logic</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('silicount', this)">
+    SiliCount
+    <span class="mod-version">V3 · Counter + Coverage</span>
+  </div>
+  <div class="mod-tab" onclick="showModule('siliaxi', this)">
+    SiliAXI
+    <span class="mod-version">V4 · AXI4-Lite Protocol</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <!-- VeroSync Sidebar -->
+    <div id="sb-verosync" class="module-panel active">
+      <div class="panel">
+        <div class="panel-header">Pipeline</div>
+        <div class="panel-body">
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Spec → RTL Generation</div>
+              <div class="step-detail">Claude generates 8-bit FIFO Verilog</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon fail">✗</div>
+            <div>
+              <div class="step-label">Compile Attempt 1</div>
+              <div class="step-detail">3 syntax errors detected</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon repair">⟳</div>
+            <div>
+              <div class="step-label">Claude Syntax Repair</div>
+              <div class="step-detail">Streaming fix → recompile</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Compile Attempt 2</div>
+              <div class="step-detail">Clean compilation</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Simulation</div>
+              <div class="step-detail">VCD waveforms captured</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Metrics</div>
+        <div class="panel-body">
+          <div class="metric-row">
+            <span class="metric-label">MODULE</span>
+            <span class="metric-value cyan">8-bit FIFO</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">SYNTAX ERRORS</span>
+            <span class="metric-value amber">3 → 0</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">REPAIR ATTEMPTS</span>
+            <span class="metric-value green">1</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">VERDICT</span>
+            <span class="metric-value green">PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SiliOracle Sidebar -->
+    <div id="sb-silioracle" class="module-panel">
+      <div class="panel">
+        <div class="panel-header">Pipeline</div>
+        <div class="panel-body">
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Compile + Simulate</div>
+              <div class="step-detail">FIFO RTL compiled clean</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">VCD Parse</div>
+              <div class="step-detail">89 timestamps extracted</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon fail">✗</div>
+            <div>
+              <div class="step-label">Golden Model Check</div>
+              <div class="step-detail">7 hallucinations detected</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon repair">⟳</div>
+            <div>
+              <div class="step-label">Claude Logic Repair</div>
+              <div class="step-detail">Timestamp-precise diagnosis</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Reverify</div>
+              <div class="step-detail">8/8 reads verified clean</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Metrics</div>
+        <div class="panel-body">
+          <div class="metric-row">
+            <span class="metric-label">MODULE</span>
+            <span class="metric-value cyan">8-bit FIFO</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">HALLUCINATIONS</span>
+            <span class="metric-value red">7 detected</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">REPAIR ATTEMPTS</span>
+            <span class="metric-value green">1</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">READS VERIFIED</span>
+            <span class="metric-value green">8 / 8</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">VERDICT</span>
+            <span class="metric-value green">PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SiliCount Sidebar -->
+    <div id="sb-silicount" class="module-panel">
+      <div class="panel">
+        <div class="panel-header">Pipeline</div>
+        <div class="panel-body">
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Claude Generates RTL + TB</div>
+              <div class="step-detail">Counter + testbench from spec</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Compile + Simulate</div>
+              <div class="step-detail">440ns simulation clean</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Golden Model</div>
+              <div class="step-detail">44 cycles verified</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Coverage Analysis</div>
+              <div class="step-detail">11/11 bins hit · 100%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Metrics</div>
+        <div class="panel-body">
+          <div class="metric-row">
+            <span class="metric-label">MODULE</span>
+            <span class="metric-value cyan">4-bit Counter</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">CYCLES VERIFIED</span>
+            <span class="metric-value green">44</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">COVERAGE BINS</span>
+            <span class="metric-value green">11 / 11</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">COVERAGE</span>
+            <span class="metric-value green">100.0%</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">VERDICT</span>
+            <span class="metric-value green">PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SiliAXI Sidebar -->
+    <div id="sb-siliaxi" class="module-panel">
+      <div class="panel">
+        <div class="panel-header">Pipeline</div>
+        <div class="panel-body">
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Claude Generates RTL + TB</div>
+              <div class="step-detail">AXI4-Lite slave from spec</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Compile + Simulate</div>
+              <div class="step-detail">626ns · 10 transactions</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Protocol Verification</div>
+              <div class="step-detail">Handshake + data + RESP</div>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <div class="step-icon pass">✓</div>
+            <div>
+              <div class="step-label">Coverage Analysis</div>
+              <div class="step-detail">12/12 bins hit · 100%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header">Metrics</div>
+        <div class="panel-body">
+          <div class="metric-row">
+            <span class="metric-label">MODULE</span>
+            <span class="metric-value cyan">AXI4-Lite Slave</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">TRANSACTIONS</span>
+            <span class="metric-value green">10 / 10</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">VIOLATIONS</span>
+            <span class="metric-value green">0</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">COVERAGE BINS</span>
+            <span class="metric-value green">12 / 12</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">VERDICT</span>
+            <span class="metric-value green">PASS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- VeroSync Content -->
+    <div id="ct-verosync" class="module-panel active">
+
+      <div class="verdict pass">
+        <span class="verdict-icon">✅</span>
+        VEROSYNC — SYNTAX VERIFICATION PASSED
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="term-dots">
+            <div class="term-dot r"></div>
+            <div class="term-dot y"></div>
+            <div class="term-dot g"></div>
+          </div>
+          <span class="term-title">python3 agent_v1.py — VeroSync</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-dim">════════════════════════════════════════════</span><br>
+<span class="t-green">  🚀 VeroSync Agent Starting</span><br>
+<span class="t-dim">════════════════════════════════════════════</span><br>
+<br>
+<span class="t-dim">🧠 Streaming RTL generation...</span> <span class="t-dim">..................</span> <span class="t-green">done.</span><br>
+<span class="t-green">✅ RTL saved to fifo.v</span><br>
+<br>
+<span class="t-dim">  Attempt 1/5: Compiling...</span><br>
+<span class="t-red">  ❌ Errors:</span><br>
+<span class="t-red">  fifo.v:12: syntax error near 'reg'</span><br>
+<span class="t-red">  fifo.v:34: error: malformed statement</span><br>
+<span class="t-red">  fifo.v:67: error: 'endmodule' unexpected</span><br>
+<br>
+<span class="t-amber">  🧠 Streaming syntax fix...</span> <span class="t-dim">.....................</span> <span class="t-green">done.</span><br>
+<br>
+<span class="t-dim">  Attempt 2/5: Compiling...</span><br>
+<span class="t-green">  ✅ Compilation successful!</span><br>
+<br>
+<span class="t-dim">VCD info: dumpfile dump.vcd opened for output.</span><br>
+<span class="t-cyan">  0xAA written to FIFO</span><br>
+<span class="t-cyan">  0xBB written to FIFO</span><br>
+<span class="t-green">  0xAA read — CORRECT</span><br>
+<span class="t-green">  0xBB read — CORRECT</span><br>
+<br>
+<span class="t-dim">════════════════════════════════════════════</span><br>
+<span class="t-green">  🏁 VeroSync Verdict</span><br>
+<span class="t-dim">════════════════════════════════════════════</span><br>
+<span class="t-green">✅ VEROSYNC COMPLETE</span><br>
+<span class="t-green">   • Syntax:  Passed (1 repair cycle)</span><br>
+<span class="t-green">   • Output:  0xAA, 0xBB verified</span><br>
+<br>
+<span class="t-green">🎉 Silicon Truth Confirmed.</span> <span class="cursor"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SiliOracle Content -->
+    <div id="ct-silioracle" class="module-panel">
+
+      <div class="verdict fail">
+        <span class="verdict-icon">❌</span>
+        HALLUCINATIONS DETECTED → AUTONOMOUS REPAIR ENGAGED
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px">
+        <div class="violation">
+          <div><span class="v-time">t=145ns</span> <span class="v-rule">[DATA]</span></div>
+          <div class="v-msg">expected 0xAA, got 0xFF — dout hardcoded</div>
+        </div>
+        <div class="violation">
+          <div><span class="v-time">t=155ns</span> <span class="v-rule">[DATA]</span></div>
+          <div class="v-msg">expected 0xBB, got 0xFF — dout hardcoded</div>
+        </div>
+        <div class="violation">
+          <div><span class="v-time">t=165ns</span> <span class="v-rule">[DATA]</span></div>
+          <div class="v-msg">expected 0xCC, got 0xFF — dout hardcoded</div>
+        </div>
+        <div class="violation">
+          <div><span class="v-time">t=175ns</span> <span class="v-rule">[DATA]</span></div>
+          <div class="v-msg">expected 0xDD, got 0xFF — dout hardcoded</div>
+        </div>
+      </div>
+
+      <div class="repair-block">
+        🧠 Streaming logic fix... Claude receives timestamp-precise diagnosis → identifies hardcoded dout → repairs memory[rd_ptr] assignment → done.
+      </div>
+
+      <div class="verdict pass" style="margin-top:4px">
+        <span class="verdict-icon">✅</span>
+        SILIORACLE — LOGIC VERIFIED CLEAN · 8/8 READS MATCHED
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="term-dots">
+            <div class="term-dot r"></div>
+            <div class="term-dot y"></div>
+            <div class="term-dot g"></div>
+          </div>
+          <span class="term-title">python3 logic_fixer.py — SiliOracle</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-green">🔮 SiliOracle: Running Golden Reference Model...</span><br>
+<span class="t-dim">✅ Parsed 89 timestamps from VCD.</span><br>
+<br>
+<span class="t-red">  ❌ t=145: Expected 0xAA, got 0xFF</span><br>
+<span class="t-red">  ❌ t=155: Expected 0xBB, got 0xFF</span><br>
+<span class="t-red">  ❌ t=165: Expected 0xCC, got 0xFF</span><br>
+<span class="t-red">  ❌ t=175: Expected 0xDD, got 0xFF</span><br>
+<span class="t-red">  ❌ t=185: Expected 0xEE, got 0xFF</span><br>
+<span class="t-red">  ❌ t=195: Expected 0xFF, got 0xFF</span><br>
+<span class="t-red">  ❌ t=205: Expected 0x11, got 0xFF</span><br>
+<br>
+<span class="t-red">🔮 SiliOracle Verdict: ❌ FAIL — 7 hallucination(s) detected.</span><br>
+<br>
+<span class="t-amber">🧠 Streaming logic repair...</span> <span class="t-dim">.........................</span> <span class="t-green">done.</span><br>
+<span class="t-green">✅ Repaired RTL saved. Re-verifying...</span><br>
+<br>
+<span class="t-green">  ✅ t=145: 0xAA matches golden ✓</span><br>
+<span class="t-green">  ✅ t=155: 0xBB matches golden ✓</span><br>
+<span class="t-green">  ✅ t=165: 0xCC matches golden ✓</span><br>
+<span class="t-green">  ✅ t=175: 0xDD matches golden ✓</span><br>
+<span class="t-green">  ✅ t=185: 0xEE matches golden ✓</span><br>
+<span class="t-green">  ✅ t=195: 0xFF matches golden ✓</span><br>
+<span class="t-green">  ✅ t=205: 0x11 matches golden ✓</span><br>
+<span class="t-green">  ✅ t=215: 0x22 matches golden ✓</span><br>
+<br>
+<span class="t-green">🔮 SiliOracle Verdict: ✅ PASS — 8 reads verified. No hallucinations.</span> <span class="cursor"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SiliCount Content -->
+    <div id="ct-silicount" class="module-panel">
+
+      <div class="verdict pass">
+        <span class="verdict-icon">✅</span>
+        SILICOUNT — 44 CYCLES VERIFIED · 100% FUNCTIONAL COVERAGE
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">Coverage Bins — 11/11 Hit</div>
+        <div class="panel-body">
+          <div class="coverage-grid">
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">count_zero</span><span class="cov-time">t=5000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">count_max</span><span class="cov-time">t=265000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">count_mid</span><span class="cov-time">t=95000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">overflow</span><span class="cov-time">t=275000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">underflow</span><span class="cov-time">t=425000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">up_only</span><span class="cov-time">t=25000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">down_only</span><span class="cov-time">t=105000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">both_enabled</span><span class="cov-time">t=145000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">neither_enabled</span><span class="cov-time">t=5000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">reset_active</span><span class="cov-time">t=5000</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">reset_mid_count</span><span class="cov-time">t=335000</span></div>
+          </div>
+          <div class="cov-bar-wrap" style="margin-top:14px">
+            <div class="cov-bar-fill" style="width:100%"></div>
+          </div>
+          <div style="text-align:right;margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green)">100.0% · 11/11 bins</div>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="term-dots">
+            <div class="term-dot r"></div>
+            <div class="term-dot y"></div>
+            <div class="term-dot g"></div>
+          </div>
+          <span class="term-title">python3 counter_agent.py — SiliCount</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-green">✅ Compilation successful!</span><br>
+<span class="t-dim">VCD info: dumpfile dump.vcd opened for output.</span><br>
+<span class="t-dim">counter_tb.v:81: $finish called at 440000 (1ps)</span><br>
+<br>
+<span class="t-green">🔮 SiliCount: ✅ PASS — 44 cycles verified. No logic hallucinations.</span><br>
+<br>
+<span class="t-green">  ✅ t=25000:  count=1  — matches golden ✓</span><br>
+<span class="t-green">  ✅ t=265000: count=15 — matches golden ✓</span><br>
+<span class="t-green">  ✅ t=275000: count=0  — overflow ✓</span><br>
+<span class="t-green">  ✅ t=425000: count=15 — underflow ✓</span><br>
+<span class="t-green">  ✅ t=335000: count=0  — reset mid-count ✓</span><br>
+<br>
+<span class="t-dim">════════════════════════════════</span><br>
+<span class="t-green">  🎉 100% Functional Coverage Achieved!</span><br>
+<span class="t-green">     Total Bins : 11</span><br>
+<span class="t-green">     Bins Hit   : 11</span><br>
+<span class="t-green">     Coverage   : 100.0%</span><br>
+<br>
+<span class="t-green">🎉 SiliCount Complete — 100% Silicon Truth Confirmed.</span> <span class="cursor"></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- SiliAXI Content -->
+    <div id="ct-siliaxi" class="module-panel">
+
+      <div class="verdict pass">
+        <span class="verdict-icon">✅</span>
+        SILIAXI — 10/10 TRANSACTIONS · 12/12 COVERAGE BINS
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">AXI4-Lite Coverage Bins — 12/12 Hit</div>
+        <div class="panel-body">
+          <div class="coverage-grid">
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">write_transaction</span><span class="cov-time">t=45</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">write_addr_low</span><span class="cov-time">t=45</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">write_addr_high</span><span class="cov-time">t=265</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">write_overwrite</span><span class="cov-time">t=445</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">read_transaction</span><span class="cov-time">t=105</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">read_addr_low</span><span class="cov-time">t=105</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">read_addr_high</span><span class="cov-time">t=405</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">write_then_read</span><span class="cov-time">t=105</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">bresp_okay</span><span class="cov-time">t=66</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">rresp_okay</span><span class="cov-time">t=106</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">reset_active</span><span class="cov-time">t=5</span></div>
+            <div class="cov-bin hit"><div class="cov-dot hit"></div><span class="cov-name">post_reset_write</span><span class="cov-time">t=45</span></div>
+          </div>
+          <div class="cov-bar-wrap" style="margin-top:14px">
+            <div class="cov-bar-fill" style="width:100%"></div>
+          </div>
+          <div style="text-align:right;margin-top:6px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--green)">100.0% · 12/12 bins</div>
+        </div>
+      </div>
+
+      <div class="terminal">
+        <div class="terminal-bar">
+          <div class="term-dots">
+            <div class="term-dot r"></div>
+            <div class="term-dot y"></div>
+            <div class="term-dot g"></div>
+          </div>
+          <span class="term-title">python3 axi_agent.py — SiliAXI</span>
+        </div>
+        <div class="terminal-body">
+<span class="t-green">✅ Compilation successful!</span><br>
+<span class="t-dim">VCD info: dumpfile dump.vcd opened for output.</span><br>
+<span class="t-cyan">Read 0x04: 0xdeadbeef</span><br>
+<span class="t-cyan">Read 0x08: 0xcafebabe</span><br>
+<span class="t-cyan">Read 0x0C: 0x12345678</span><br>
+<span class="t-cyan">Read 0x10: 0xaabbccdd</span><br>
+<span class="t-cyan">Read 0x04: 0x11223344</span><br>
+<span class="t-dim">axi4_lite_tb.v:98: $finish called at 626 (1ns)</span><br>
+<br>
+<span class="t-green">  📝 t=45:  Write ADDR=0x04</span><br>
+<span class="t-green">  ✍️  t=65:  0xDEADBEEF → mem[0x04]</span><br>
+<span class="t-green">  ✅ t=66:  BRESP=OKAY ✓</span><br>
+<span class="t-green">  📖 t=105: Read ADDR=0x04</span><br>
+<span class="t-green">  ✅ t=106: RDATA=0xDEADBEEF matches golden ✓</span><br>
+<span class="t-dim">  ... 9 more transactions verified ...</span><br>
+<br>
+<span class="t-green">🔮 SiliAXI Verdict: ✅ PASS — 10 transaction(s). No violations.</span><br>
+<br>
+<span class="t-green">✅ AXI4-LITE PROTOCOL VERIFIED CLEAN</span><br>
+<span class="t-green">   • Syntax:    Passed</span><br>
+<span class="t-green">   • Handshake: Passed (VALID/READY integrity)</span><br>
+<span class="t-green">   • Data:      Passed (Write→Read correctness)</span><br>
+<span class="t-green">   • Response:  Passed (BRESP/RRESP = OKAY)</span><br>
+<span class="t-green">   • Coverage:  100.0% (12/12 bins)</span><br>
+<br>
+<span class="t-green">🎉 AXI4-Lite Silicon Truth Confirmed.</span> <span class="cursor"></span>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<footer>
+  <div class="f-left">
+    SILIAGENT AI · B.E. CSE FINAL YEAR · MARCH 2026 · PYTHON + ICARUS VERILOG + CLAUDE API
+  </div>
+  <a href="https://github.com/Saikumar2129/SiliAgent-AI-Autonomous-RTL-Verification-Platform" target="_blank">
+    ↗ github.com/Saikumar2129/SiliAgent-AI-Autonomous-RTL-Verification-Platform
+  </a>
+</footer>
+
+<script>
+function showModule(id, tab) {
+  // Hide all panels
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+
+  // Show selected
+  document.getElementById('sb-' + id).classList.add('active');
+  document.getElementById('ct-' + id).classList.add('active');
+  tab.classList.add('active');
+}
+</script>
+
+</body>
+</html>
